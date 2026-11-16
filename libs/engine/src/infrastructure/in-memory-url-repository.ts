@@ -1,4 +1,4 @@
-import type { UrlRepository } from "../domain/url-repository";
+import type { PageRequest, UrlRepository } from "../domain/url-repository";
 import { ShortUrl } from "../domain/short-url";
 
 export class InMemoryUrlRepository implements UrlRepository {
@@ -16,7 +16,13 @@ export class InMemoryUrlRepository implements UrlRepository {
     return this.store.has(code);
   }
 
-  async list(): Promise<ShortUrl[]> {
-    return [...this.store.values()];
+  async incrementClicks(code: string): Promise<ShortUrl | null> {
+    const shortUrl = this.store.get(code);
+    shortUrl?.recordClick();
+    return shortUrl ?? null;
+  }
+
+  async list({ limit, offset }: PageRequest): Promise<ShortUrl[]> {
+    return [...this.store.values()].reverse().slice(offset, offset + limit);
   }
 }

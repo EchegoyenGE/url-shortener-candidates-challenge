@@ -1,12 +1,19 @@
 import { Prisma, type PrismaClient, type ShortUrl as ShortUrlRecord } from "@prisma/client";
 import { DuplicateCodeError } from "../domain/errors";
 import { ShortUrl } from "../domain/short-url";
-import type { UrlRepository } from "../domain/url-repository";
+import type { PageRequest, UrlRepository } from "../domain/url-repository";
 
 function isUniqueConstraintError(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
+  );
+}
+
+function isRecordNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2025"
   );
 }
 
@@ -59,9 +66,27 @@ export class PrismaUrlRepository implements UrlRepository {
     return count > 0;
   }
 
-  async list(): Promise<ShortUrl[]> {
+  async incrementClicks(code: string): Promise<ShortUrl | null> {
+    try {
+      // Compiles to `SET clicks = clicks + 1`, so concurrent resolutions can't lose updates.
+      const record = await this.prisma.shortUrl.update({
+        where: { code },
+        data: { clicks: { increment: 1 } },
+      });
+      return toDomain(record);
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async list({ limit, offset }: PageRequest): Promise<ShortUrl[]> {
     const records = await this.prisma.shortUrl.findMany({
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit,
+      skip: offset,
     });
     return records.map(toDomain);
   }

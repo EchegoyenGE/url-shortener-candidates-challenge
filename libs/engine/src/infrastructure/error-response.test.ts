@@ -5,6 +5,7 @@ import {
   InvalidUrlError,
   ShortUrlNotFoundError,
 } from "../domain/errors";
+import { RateLimitExceededError } from "./rate-limiter";
 
 async function bodyOf(
   response: Response,
@@ -36,6 +37,19 @@ describe("toErrorResponse", () => {
     expect(response.status).toBe(409);
     const body = await bodyOf(response);
     expect(body.error.code).toBe("CODE_GENERATION_CONFLICT");
+  });
+
+  it("maps RateLimitExceededError to 429 with a Retry-After header", async () => {
+    const response = toErrorResponse(new RateLimitExceededError(30));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("30");
+    expect(await bodyOf(response)).toEqual({
+      error: {
+        code: "RATE_LIMITED",
+        message: "Too many requests. Try again in 30 seconds.",
+      },
+    });
   });
 
   it("maps unknown errors to 500 INTERNAL_ERROR without leaking internal details", async () => {

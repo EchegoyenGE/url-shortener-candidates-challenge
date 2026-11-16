@@ -28,7 +28,7 @@ describe("InMemoryUrlRepository", () => {
     expect(await repository.exists("zz")).toBe(false);
   });
 
-  it("lists all saved ShortUrls", async () => {
+  it("lists saved ShortUrls newest first, paginated", async () => {
     const repository = new InMemoryUrlRepository();
     const first = new ShortUrl({ code: "ab", originalUrl: "https://example.com" });
     const second = new ShortUrl({ code: "cd", originalUrl: "https://example.org" });
@@ -36,6 +36,7 @@ describe("InMemoryUrlRepository", () => {
     await repository.save(first);
     await repository.save(second);
 
-    expect(await repository.list()).toEqual([first, second]);
+    expect(await repository.list({ limit: 10, offset: 0 })).toEqual([second, first]);
+    expect(await repository.list({ limit: 1, offset: 1 })).toEqual([first]);
   });
 });

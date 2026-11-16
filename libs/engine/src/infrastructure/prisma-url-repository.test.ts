@@ -41,18 +41,16 @@ describe("PrismaUrlRepository", () => {
     expect(await repository.exists("unknown-code")).toBe(false);
   });
 
-  it("lists all saved ShortUrls", async () => {
+  it("lists saved ShortUrls newest first, bounded by limit", async () => {
     const repository = new PrismaUrlRepository(prisma);
     const codeA = randomUUID().slice(0, 7);
     const codeB = randomUUID().slice(0, 7);
     await repository.save(new ShortUrl({ code: codeA, originalUrl: "https://a.example.com" }));
     await repository.save(new ShortUrl({ code: codeB, originalUrl: "https://b.example.com" }));
 
-    const list = await repository.list();
-    const codes = list.map((url) => url.code);
+    const list = await repository.list({ limit: 2, offset: 0 });
 
-    expect(codes).toContain(codeA);
-    expect(codes).toContain(codeB);
+    expect(list.map((url) => url.code)).toEqual([codeB, codeA]);
   });
 
   it("updates clicks when saving an already-persisted ShortUrl", async () => {

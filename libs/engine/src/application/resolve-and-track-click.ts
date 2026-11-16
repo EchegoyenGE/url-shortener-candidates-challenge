@@ -6,14 +6,11 @@ export class ResolveAndTrackClick {
   constructor(private readonly urlRepository: UrlRepository) {}
 
   async execute(code: string): Promise<ShortUrl> {
-    const shortUrl = await this.urlRepository.findByCode(code);
+    const shortUrl = await this.urlRepository.incrementClicks(code);
 
     if (!shortUrl) {
       throw new ShortUrlNotFoundError(code);
     }
-
-    shortUrl.recordClick();
-    await this.urlRepository.save(shortUrl);
 
     return shortUrl;
   }

@@ -56,8 +56,9 @@ describe("ShortenUrl", () => {
     let saveAttempts = 0;
     const racyRepository: UrlRepository = {
       findByCode: (code) => repository.findByCode(code),
-      list: () => repository.list(),
+      list: (page) => repository.list(page),
       exists: () => Promise.resolve(false),
+      incrementClicks: (code) => repository.incrementClicks(code),
       save: async (shortUrl) => {
         saveAttempts += 1;
         if (saveAttempts < 2) {

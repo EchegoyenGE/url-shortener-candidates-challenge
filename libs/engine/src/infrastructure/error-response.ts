@@ -3,14 +3,30 @@ import {
   InvalidUrlError,
   ShortUrlNotFoundError,
 } from "../domain/errors";
+import { RateLimitExceededError } from "./rate-limiter";
+import { PayloadTooLargeError } from "./request-body";
 
 interface ErrorBody {
   status: number;
   code: string;
   message: string;
+  headers?: Record<string, string>;
 }
 
 function toErrorBody(error: unknown): ErrorBody {
+  if (error instanceof RateLimitExceededError) {
+    return {
+      status: 429,
+      code: "RATE_LIMITED",
+      message: error.message,
+      headers: { "Retry-After": String(error.retryAfterSeconds) },
+    };
+  }
+
+  if (error instanceof PayloadTooLargeError) {
+    return { status: 413, code: "PAYLOAD_TOO_LARGE", message: error.message };
+  }
+
   if (error instanceof InvalidUrlError) {
     return { status: 400, code: "INVALID_URL", message: error.message };
   }
@@ -39,10 +55,10 @@ function toErrorBody(error: unknown): ErrorBody {
 }
 
 export function toErrorResponse(error: unknown): Response {
-  const { status, code, message } = toErrorBody(error);
+  const { status, code, message, headers } = toErrorBody(error);
 
   return new Response(JSON.stringify({ error: { code, message } }), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
   });
 }

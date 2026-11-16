@@ -4,4 +4,5 @@ export default [
   index("routes/_index.tsx"),
   route("s/:code", "routes/s.$code.tsx"),
   route("health", "routes/health.tsx"),
+  route("api/urls", "routes/api.urls.ts"),
 ] satisfies RouteConfig;
