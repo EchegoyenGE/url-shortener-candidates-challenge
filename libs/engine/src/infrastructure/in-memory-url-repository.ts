@@ -12,6 +12,10 @@ export class InMemoryUrlRepository implements UrlRepository {
     return this.store.get(code) ?? null;
   }
 
+  async exists(code: string): Promise<boolean> {
+    return this.store.has(code);
+  }
+
   async list(): Promise<ShortUrl[]> {
     return [...this.store.values()];
   }

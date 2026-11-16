@@ -18,3 +18,10 @@ export class CodeGenerationError extends Error {
     this.name = "CodeGenerationError";
   }
 }
+
+export class DuplicateCodeError extends Error {
+  constructor(public readonly code: string) {
+    super(`Short code already exists: ${code}`);
+    this.name = "DuplicateCodeError";
+  }
+}

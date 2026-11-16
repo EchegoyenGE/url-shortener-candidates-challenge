@@ -18,6 +18,16 @@ describe("InMemoryUrlRepository", () => {
     expect(await repository.findByCode("zz")).toBeNull();
   });
 
+  it("reports whether a code exists", async () => {
+    const repository = new InMemoryUrlRepository();
+    const shortUrl = new ShortUrl({ code: "ab", originalUrl: "https://example.com" });
+
+    await repository.save(shortUrl);
+
+    expect(await repository.exists("ab")).toBe(true);
+    expect(await repository.exists("zz")).toBe(false);
+  });
+
   it("lists all saved ShortUrls", async () => {
     const repository = new InMemoryUrlRepository();
     const first = new ShortUrl({ code: "ab", originalUrl: "https://example.com" });

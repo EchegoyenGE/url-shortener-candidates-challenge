@@ -12,7 +12,11 @@
   },
   "packageManager": "pnpm@10.20.0",
   "devDependencies": {
+    "prisma": "6.19.3",
     "turbo": "^2.7.4",
     "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
   }
 }
