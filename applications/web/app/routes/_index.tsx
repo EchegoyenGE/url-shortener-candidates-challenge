@@ -1,10 +1,6 @@
 import { Form, useActionData } from "react-router";
 import type { Route } from "./+types/_index";
-import {
-  baseUrl,
-  shortenedUrls,
-  generateShortCode,
-} from "@url-shortener/engine";
+import { baseUrl, shortenerApp, toErrorResponse } from "@url-shortener/engine";
 
 export function loader() {
   return {
@@ -16,17 +12,12 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const url = formData.get("url") as string;
 
-  if (!url) {
-    return { error: "URL is required" };
+  try {
+    const shortUrl = await shortenerApp.shortenUrl.execute(url);
+    return { shortenedUrl: `${baseUrl}/s/${shortUrl.code}` };
+  } catch (error) {
+    return toErrorResponse(error);
   }
-
-  const shortCode = generateShortCode();
-
-  shortenedUrls.set(shortCode, url);
-
-  return {
-    shortenedUrl: `${baseUrl}/s/${shortCode}`,
-  };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -85,10 +76,10 @@ export default function Index({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {actionData?.error && (
+        {actionData && "error" in actionData && (
           <div className="mt-8 p-4 bg-lime-500 rounded-none border-8 border-solid border-red-700">
             <p className="text-2xl text-blue-800 font-black">
-              {actionData.error}
+              {(actionData as { error: { message: string } }).error.message}
             </p>
           </div>
         )}

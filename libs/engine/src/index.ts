@@ -1,3 +1,4 @@
-export { baseUrl } from "./base-url";
+export { baseUrl } from "./infrastructure/config";
 
-export { shortenedUrls, generateShortCode } from "./shortened-url";
+export { shortenerApp } from "./composition-root";
+export { toErrorResponse } from "./infrastructure/error-response";
